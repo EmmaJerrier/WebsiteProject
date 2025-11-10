@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+      "incremental": false,
+      "target": "ES6",
+      "rootDir": "./src",
+      "module": "CommonJS",
+      "declaration": true,
+      "outDir": "./lib",
+      "esModuleInterop": true,
+      "skipLibCheck": true,
+      "forceConsistentCasingInFileNames": true,
+      "strict": true
+    },
+    "include": ["src/**/*"]
+  }
