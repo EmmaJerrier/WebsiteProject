@@ -40,3 +40,12 @@ export async function searchEvents(params: {
 
   return response.data;
 }
+
+export async function suggestKeywords(keyword: string) {
+  const res = await axios.get(`${TM_BASE}/suggest`, {
+    params: { apikey: TM_API_KEY, keyword }
+  });
+  return res.data;
+}
+
+

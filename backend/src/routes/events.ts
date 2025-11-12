@@ -1,7 +1,13 @@
 import { Router } from "express";
-import { searchEvents, getEventDetails } from "../services/ticketmaster";
+import { searchEvents, getEventDetails, suggestKeywords } from "../services/ticketmaster";
 
 const router = Router();
+router.get("/suggest", async (req, res) => {
+  const { keyword } = req.query;
+  if (!keyword || !String(keyword).trim()) return res.json({ _embedded: { attractions: [], venues: [] }});
+  const data = await suggestKeywords(String(keyword));
+  res.json(data);
+});
 
 // GET /api/events/search?keyword=...&radius=...&lat=...&lng=...&segmentId=...
 router.get("/search", async (req, res) => {
@@ -37,5 +43,13 @@ router.get("/:id", async (req, res) => {
     res.status(500).json({ error: "Ticketmaster event details failed" });
   }
 });
+
+router.get("/suggest", async (req, res) => {
+  const { keyword } = req.query;
+  if (!keyword || !String(keyword).trim()) return res.json({ _embedded: { attractions: [] }});
+  const data = await suggestKeywords(String(keyword));
+  res.json(data);
+});
+
 
 export default router;

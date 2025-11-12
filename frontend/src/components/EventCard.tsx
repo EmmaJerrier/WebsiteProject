@@ -1,69 +1,101 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 export interface EventSummary {
   id: string;
   name: string;
-  date: string;
-  time: string;
+  date: string; // "YYYY-MM-DD"
+  time: string; // "HH:MM:SS" (local)
   venue: string;
-  genre: string;
+  genre: string; // e.g., "Sports"
   imageUrl: string;
 }
 
 interface Props {
   event: EventSummary;
+  isFavorite: boolean;
+  onToggleFavorite: (event: EventSummary) => void;
 }
 
-export default function EventCard({ event }: Props) {
+function formatBadgeDate(date: string, time: string) {
+  // e.g., "Oct 10, 06:30 PM" or just "Oct 10"
+  try {
+    const dt = new Date(`${date}T${time || "00:00:00"}`);
+    const hasTime = Boolean(time);
+    const d = dt.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    const t = dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    return hasTime ? `${d}, ${t}` : d;
+  } catch {
+    return date || "";
+  }
+}
+
+export default function EventCard({ event, isFavorite, onToggleFavorite }: Props) {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    navigate(`/event/${event.id}`);
-  };
+  const badgeDate = useMemo(() => formatBadgeDate(event.date, event.time), [event.date, event.time]);
 
-  const handleFavoriteClick = (e: React.MouseEvent) => {
+  const goDetail = () => navigate(`/event/${event.id}`);
+
+  const onFavClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    alert("Favorite clicked (we'll wire this to MongoDB later!)");
+    onToggleFavorite(event);
   };
 
   return (
     <div
-      className="grid grid-cols-[auto,auto,80px,1fr,1fr,auto] items-center gap-4 p-3 bg-white/5 border border-slate-700 rounded-xl hover:bg-white/10 cursor-pointer"
-      onClick={handleClick}
+      onClick={goDetail}
+      className="group relative cursor-pointer overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition hover:shadow-md"
     >
-      <div className="text-xs px-2 py-1 rounded-full border border-slate-500">
-        {event.genre || "N/A"}
-      </div>
+      {/* Image */}
+      <div className="relative bg-gray-100">
+        <div className="h-44 md:h-48 w-full overflow-hidden">
+          {event.imageUrl ? (
+            <img
+              src={event.imageUrl}
+              alt={event.name}
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">No image</div>
+          )}
+        </div>
 
-      <div className="text-sm text-gray-300">
-        <div>{event.date}</div>
-        <div>{event.time}</div>
-      </div>
+        {/* Top-left: genre chip */}
+        {event.genre && (
+          <span className="absolute left-2 top-2 rounded-full border border-gray-300 bg-white/90 px-2 py-0.5 text-xs font-medium text-gray-700 backdrop-blur">
+            {event.genre}
+          </span>
+        )}
 
-      <div className="w-20 h-20 overflow-hidden rounded-md bg-black/40 flex items-center justify-center">
-        {event.imageUrl ? (
-          <img
-            src={event.imageUrl}
-            alt={event.name}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <span className="text-xs text-gray-500 text-center px-1">
-            No image
+        {/* Top-right: date chip */}
+        {badgeDate && (
+          <span className="absolute right-2 top-2 rounded-full border border-gray-300 bg-white/90 px-2 py-0.5 text-xs font-medium text-gray-700 backdrop-blur">
+            {badgeDate}
           </span>
         )}
       </div>
 
-      <div className="text-sm font-semibold">{event.name}</div>
-      <div className="text-sm text-gray-300">{event.venue}</div>
+      {/* Content */}
+      <div className="p-3">
+        <div className="line-clamp-2 text-sm font-semibold text-gray-900">
+          {event.name}
+        </div>
+        <div className="mt-1 text-xs text-gray-600">{event.venue}</div>
 
-      <button
-        onClick={handleFavoriteClick}
-        className="w-10 h-10 flex items-center justify-center rounded-full border border-slate-500 hover:bg-slate-700"
-        aria-label="Favorite"
-      >
-        <span className="text-lg">♡</span>
-      </button>
+        {/* Actions */}
+        <div className="mt-3 flex items-center justify-end">
+          <button
+            onClick={onFavClick}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-50"
+            aria-label="favorite"
+          >
+            <span className={`text-base leading-none ${isFavorite ? "text-red-500" : "text-gray-700"}`}>
+              {isFavorite ? "♥" : "♡"}
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

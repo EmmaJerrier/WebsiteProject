@@ -4,6 +4,7 @@ dotenv.config();        // ← this must come first
 import express, { Request, Response } from "express";
 import cors from "cors";
 import eventsRouter from "./routes/events";
+import favoritesRouter from "./routes/favorites";
 import "./db/mongo";
 
 const app = express();
@@ -17,6 +18,7 @@ app.get("/api/health", (_req: Request, res: Response) => {
 });
 
 app.use("/api/events", eventsRouter);
+app.use("/api/favorites", favoritesRouter);
 
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);
