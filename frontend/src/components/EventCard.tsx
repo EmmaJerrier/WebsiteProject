@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
+// Shared event shape used across search, details, favorites, etc.
 export interface EventSummary {
   id: string;
   name: string;
@@ -22,8 +23,14 @@ function formatBadgeDate(date: string, time: string) {
   try {
     const dt = new Date(`${date}T${time || "00:00:00"}`);
     const hasTime = Boolean(time);
-    const d = dt.toLocaleDateString(undefined, { month: "short", day: "numeric" });
-    const t = dt.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    const d = dt.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+    const t = dt.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     return hasTime ? `${d}, ${t}` : d;
   } catch {
     return date || "";
@@ -33,7 +40,10 @@ function formatBadgeDate(date: string, time: string) {
 export default function EventCard({ event, isFavorite, onToggleFavorite }: Props) {
   const navigate = useNavigate();
 
-  const badgeDate = useMemo(() => formatBadgeDate(event.date, event.time), [event.date, event.time]);
+  const badgeDate = useMemo(
+    () => formatBadgeDate(event.date, event.time),
+    [event.date, event.time]
+  );
 
   const goDetail = () => navigate(`/event/${event.id}`);
 
@@ -57,7 +67,9 @@ export default function EventCard({ event, isFavorite, onToggleFavorite }: Props
               className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">No image</div>
+            <div className="flex h-full w-full items-center justify-center text-xs text-gray-400">
+              No image
+            </div>
           )}
         </div>
 
@@ -88,11 +100,22 @@ export default function EventCard({ event, isFavorite, onToggleFavorite }: Props
           <button
             onClick={onFavClick}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-300 bg-white hover:bg-gray-50"
-            aria-label="favorite"
+            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
           >
-            <span className={`text-base leading-none ${isFavorite ? "text-red-500" : "text-gray-700"}`}>
-              {isFavorite ? "♥" : "♡"}
-            </span>
+            {/* Heart icon: outline when not favorite, red filled when favorite */}
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              className={isFavorite ? "text-red-500" : "text-black"}
+            >
+              <path
+                d="M12.1 4.44 12 4.55l-.1-.11A5.46 5.46 0 0 0 7.5 2 5.5 5.5 0 0 0 2 7.5c0 1.61.64 3.09 1.76 4.21l7.07 7.07a1 1 0 0 0 1.41 0l7.07-7.07A5.96 5.96 0 0 0 22 7.5 5.5 5.5 0 0 0 16.5 2a5.46 5.46 0 0 0-4.4 2.44Z"
+                fill={isFavorite ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="1.8"
+              />
+            </svg>
           </button>
         </div>
       </div>

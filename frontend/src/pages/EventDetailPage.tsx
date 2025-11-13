@@ -9,6 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { EventSummary } from "../components/EventCard";
+import ArtistPane from "../components/ArtistPane";
+
 
 type TMAttraction = {
   id: string;
@@ -81,6 +83,21 @@ function fmtDateTime(date?: string, time?: string) {
   }
 }
 
+function formatVenueAddress(v?: {
+  address?: { line1?: string; line2?: string };
+  city?: { name?: string };
+  state?: { name?: string };
+  postalCode?: string;
+  country?: { name?: string };
+}) {
+  if (!v) return "";
+  const lineA = [v.address?.line1, v.address?.line2].filter(Boolean).join(", ");
+  const lineB = [v.city?.name, v.state?.name, v.postalCode].filter(Boolean).join(", ");
+  const lineC = v.country?.name || "";
+  return [lineA, lineB, lineC].filter(Boolean).join(", ");
+}
+
+
 function genrePath(c?: TMEvent["classifications"]) {
   if (!c || !c[0]) return "";
   const seg = c[0].segment?.name ?? "";
@@ -140,6 +157,20 @@ export default function EventDetailPage() {
     );
   }
   if (!event) return <div className="px-8 py-6">Not found.</div>;
+    const attractionNames =
+    (event?._embedded?.attractions ?? [])
+        .map(a => a?.name)
+        .filter(Boolean) as string[];
+
+    // Prefer the first “Music” attraction as the main name if possible
+    const musicFirst =
+    (event?._embedded?.attractions ?? [])
+        .filter(a => a?.classifications?.[0]?.segment?.name === "Music")
+        .map(a => a.name)
+        .filter(Boolean) as string[];
+
+    const preferred = musicFirst[0] || attractionNames[0];
+    const fallbacks = attractionNames.slice(1);
 
   return (
     <div className="px-8 py-6">
@@ -167,16 +198,16 @@ export default function EventDetailPage() {
             </Button>
           )}
           {/* favorite heart */}
-                <button
-        onClick={() => toggleFavorite(toSummary(event))}
-        className="h-10 w-10 rounded-full border border-gray-300 bg-white hover:bg-gray-50 flex items-center justify-center"
-        aria-label="favorite"
-        title="Favorite"
-        >
-        <span className={`text-lg ${isFavorite(event.id) ? "text-red-500" : "text-gray-800"}`}>
-            {isFavorite(event.id) ? "♥" : "♡"}
-        </span>
-        </button>
+<button
+  onClick={() => toggleFavorite(toSummary(event))}
+  className="h-10 w-10 rounded-full border border-gray-300 bg-white hover:bg-gray-50 flex items-center justify-center"
+  aria-label={isFavorite(event.id) ? "Remove from favorites" : "Add to favorites"}
+>
+  <span className={isFavorite(event.id) ? "text-red-500 text-lg" : "text-black text-lg"}>
+    {isFavorite(event.id) ? "♥" : "♡"}
+  </span>
+</button>
+
 
         </div>
       </div>
@@ -293,52 +324,160 @@ export default function EventDetailPage() {
 
         {/* ---------- ARTISTS/TEAMS TAB (placeholder; you can fill with cards later) ---------- */}
         <TabsContent value="artists" className="mt-4">
-          <div className="text-sm text-gray-700">
-            {artistsLine || "No artists/teams listed."}
-          </div>
+        <ArtistPane preferredName={preferred} fallbackNames={fallbacks} />
         </TabsContent>
 
         {/* ---------- VENUE TAB (quick details; flesh out as needed) ---------- */}
-        <TabsContent value="venue" className="mt-4">
-          {!venue ? (
-            <div className="text-sm text-gray-700">No venue data.</div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm">
-              <div className="space-y-3">
-                <div>
-                  <div className="font-semibold text-gray-900">Name</div>
-                  <div className="text-gray-700">{venue.name ?? "—"}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Address</div>
-                  <div className="text-gray-700">
-                    {[venue.address?.line1, venue.address?.line2].filter(Boolean).join(", ") || "—"}
-                    <br />
-                    {[venue.city?.name, venue.state?.name, venue.postalCode].filter(Boolean).join(", ") || ""}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Phone</div>
-                  <div className="text-gray-700">{venue.boxOfficeInfo?.phoneNumberDetail || "—"}</div>
-                </div>
+<TabsContent value="venue" className="mt-4">
+  {!venue ? (
+    <div className="text-sm text-gray-700">No venue data.</div>
+  ) : (
+    
+    <div className="space-y-4">
+      {/* Top row: Venue name + address + See Events */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          {/* Name (only if present) */}
+          {venue.name && (
+            <div className="text-2xl font-semibold leading-tight">
+              {venue.name}
+            </div>
+          )}
+
+          {/* Address (only if present) */}
+          {(() => {
+            const addressText = formatVenueAddress(venue);
+            const lat = venue.location?.latitude;
+            const lng = venue.location?.longitude;
+            const hasCoords = lat && lng;
+
+            if (!addressText) return null;
+
+            const mapsUrl = hasCoords
+              ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+              : "";
+
+            return (
+              <div className="mt-1 text-sm text-gray-600">
+                {hasCoords ? (
+                  <a
+                    href={mapsUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 hover:text-blue-600 underline"
+                  >
+                    {addressText}
+                    {/* small external icon */}
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <path
+                        d="M14 3h7v7m0-7L10 14"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                      <path
+                        d="M21 14v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </a>
+                ) : (
+                  <span>{addressText}</span>
+                )}
               </div>
-              <div className="space-y-3">
-                <div>
-                  <div className="font-semibold text-gray-900">General Rules</div>
-                  <div className="text-gray-700 whitespace-pre-line">{venue.generalInfo?.generalRule || "—"}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Child Rules</div>
-                  <div className="text-gray-700 whitespace-pre-line">{venue.generalInfo?.childRule || "—"}</div>
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Parking</div>
-                  <div className="text-gray-700 whitespace-pre-line">{venue.parkingDetail || "—"}</div>
-                </div>
+            );
+          })()}
+        </div>
+
+{venue.url && (
+  <Button
+    asChild
+    className="rounded-full"
+    variant="outline"
+  >
+    <a
+      href={venue.url}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      See Events
+      <svg
+        className="ml-2"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M14 3h7v7m0-7L10 14"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </a>
+  </Button>
+)}
+
+      </div>
+
+      {/* Two-column content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left: Cover / logo (only if there is an image) */}
+        {((venue as any).images?.[0]?.url) ? (
+          <div className="rounded-xl border border-gray-200 overflow-hidden bg-white">
+            <img
+              src={(venue as any).images[0].url}
+              alt={venue.name ?? "Venue"}
+              className="w-full h-[360px] object-contain bg-white"
+            />
+          </div>
+        ) : null}
+
+        {/* Right: Parking / Rules – each only if present */}
+        <div className="space-y-6 text-sm">
+          {venue.parkingDetail && (
+            <div>
+              <div className="font-semibold text-gray-900 mb-1">Parking</div>
+              <div className="text-gray-700 whitespace-pre-line">
+                {venue.parkingDetail}
               </div>
             </div>
           )}
-        </TabsContent>
+
+          {venue.generalInfo?.generalRule && (
+            <div>
+              <div className="font-semibold text-gray-900 mb-1">General Rule</div>
+              <div className="text-gray-700 whitespace-pre-line">
+                {venue.generalInfo.generalRule}
+              </div>
+            </div>
+          )}
+
+          {venue.generalInfo?.childRule && (
+            <div>
+              <div className="font-semibold text-gray-900 mb-1">Child Rule</div>
+              <div className="text-gray-700 whitespace-pre-line">
+                {venue.generalInfo.childRule}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )}
+</TabsContent>
+
       </Tabs>
     </div>
   );
