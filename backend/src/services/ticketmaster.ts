@@ -1,15 +1,18 @@
 import axios from "axios";
 
 const TM_BASE = "https://app.ticketmaster.com/discovery/v2";
-const TM_API_KEY = process.env.TM_API_KEY;
 
-if (!TM_API_KEY) {
-  throw new Error("TM_API_KEY is not set in .env");
+function getApiKey(): string {
+  const key = process.env.TM_API_KEY;
+  if (!key) {
+    throw new Error("TM_API_KEY is not set in environment. For local development, add it to backend/.env or set TM_API_KEY in your shell.");
+  }
+  return key;
 }
 export async function getEventDetails(id: string) {
   const response = await axios.get(`${TM_BASE}/events/${id}.json`, {
     params: {
-      apikey: TM_API_KEY
+      apikey: getApiKey()
     }
   });
 
@@ -29,7 +32,7 @@ export async function searchEvents(params: {
   // at first we can just pass latlong param; you can switch to geohash later.
   const response = await axios.get(`${TM_BASE}/events.json`, {
     params: {
-      apikey: TM_API_KEY,
+      apikey: getApiKey(),
       keyword,
       radius,
       unit: "miles",
@@ -43,10 +46,9 @@ export async function searchEvents(params: {
 
 export async function suggestKeywords(q: string): Promise<any> {
   try {
-    const apiKey = process.env.TM_API_KEY;
     const url = "https://app.ticketmaster.com/discovery/v2/suggest";
     const res = await axios.get(url, {
-      params: { apikey: apiKey, keyword: q },
+      params: { apikey: getApiKey(), keyword: q },
     });
 
     // Return the raw TM suggest response so the frontend can read _embedded.attractions/venues

@@ -26,7 +26,8 @@ export async function loadSecrets(projectId?: string) {
         if (value) process.env[s] = value;
       } catch (err) {
         // Don't fail hard; missing secrets may be optional in some envs
-        console.warn(`Could not load secret ${s} from Secret Manager:`, err?.message ?? err);
+        const message = err instanceof Error ? err.message : String(err);
+        console.warn(`Could not load secret ${s} from Secret Manager:`, message);
       }
     }
   }
