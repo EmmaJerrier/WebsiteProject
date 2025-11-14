@@ -52,8 +52,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       // optimistic local update
       setFavorites((prev) => ({ ...prev, [event.id]: event }));
 
-      // toast: "... added to favorites!"
-      toast.success(`${event.name} added to favorites!`);
+      // toast: "... added to favorites!" (neutral style — avoid green)
+      toast(`${event.name} added to favorites!`);
 
       // persist on backend
       api.post("/favorites", event).catch((err) => {
@@ -89,7 +89,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
       });
 
       if (opts?.showReaddedToast) {
-        toast.success(`${event.name} re-added to favorites!`);
+        // neutral toast (no green)
+        toast(`${event.name} re-added to favorites!`);
       }
     };
 

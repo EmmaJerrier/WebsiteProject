@@ -7,9 +7,21 @@ import eventsRouter from "./routes/events";
 import favoritesRouter from "./routes/favorites";
 import "./db/mongo";
 import spotifyRouter from "./routes/spotify";
+import mongoose from "mongoose";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
+
+
+const mongoUri = process.env.MONGODB_URI!;
+mongoose
+  .connect(mongoUri)
+  .then(() => {
+    console.log("✅ MongoDB connected");
+  })
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err);
+  });
 
 app.use(cors());
 app.use(express.json());

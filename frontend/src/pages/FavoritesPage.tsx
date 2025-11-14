@@ -3,33 +3,24 @@ import EventCard from "../components/EventCard";
 import type { EventSummary } from "../components/EventCard";
 
 export default function FavoritesPage() {
-  const { favorites, loading, isFavorite, toggleFavorite } = useFavorites();
+  const { favorites, isFavorite, toggleFavorite } = useFavorites();
 
-  if (loading) {
-    return <div>Loading favorites…</div>;
-  }
+  const favoritesList: EventSummary[] = Array.isArray(favorites)
+    ? (favorites as EventSummary[])
+    : favorites
+    ? (Object.values(favorites) as EventSummary[])
+    : [];
 
   return (
-    <div className="max-w-5xl mx-auto space-y-4">
-      <h1 className="text-xl font-semibold mb-2">Favorites</h1>
+    <div className="px-8 py-6 max-w-6xl mx-auto">
+      <h1 className="text-xl font-semibold mb-4">Favorites</h1>
 
-      {favorites.length === 0 ? (
-        <div className="text-sm text-gray-400">
-          No favorite events yet.
-        </div>
+      {favoritesList.length === 0 ? (
+        <div className="text-sm text-gray-400">No favorite events yet.</div>
       ) : (
-        <div className="space-y-2">
-          <div className="hidden md:grid grid-cols-[auto,auto,80px,1fr,1fr,auto] gap-4 px-3 text-xs text-gray-400">
-            <div>Category</div>
-            <div>Date &amp; Time</div>
-            <div>Image</div>
-            <div>Event</div>
-            <div>Venue</div>
-            <div>Favorite</div>
-          </div>
-
-          <div className="space-y-2">
-            {favorites.map((ev: EventSummary) => (
+        <div>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {favoritesList.map((ev: EventSummary) => (
               <EventCard
                 key={ev.id}
                 event={ev}

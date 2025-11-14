@@ -2,11 +2,21 @@ import { Router } from "express";
 import { searchEvents, getEventDetails, suggestKeywords } from "../services/ticketmaster";
 
 const router = Router();
+
+// GET /api/events/suggest?keyword=...
 router.get("/suggest", async (req, res) => {
-  const { keyword } = req.query;
-  if (!keyword || !String(keyword).trim()) return res.json({ _embedded: { attractions: [], venues: [] }});
-  const data = await suggestKeywords(String(keyword));
-  res.json(data);
+  try {
+    const keyword = String(req.query.keyword || "").trim();
+    if (!keyword) {
+      return res.json({ _embedded: { attractions: [], venues: [] } });
+    }
+    const data = await suggestKeywords(keyword);
+    return res.json(data);
+  } catch (e: any) {
+    console.error("Suggest route error:", e.message || e);
+    // return safe empty shape
+    return res.json({ _embedded: { attractions: [], venues: [] } });
+  }
 });
 
 // GET /api/events/search?keyword=...&radius=...&lat=...&lng=...&segmentId=...

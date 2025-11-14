@@ -41,11 +41,25 @@ export async function searchEvents(params: {
   return response.data;
 }
 
-export async function suggestKeywords(keyword: string) {
-  const res = await axios.get(`${TM_BASE}/suggest`, {
-    params: { apikey: TM_API_KEY, keyword }
-  });
-  return res.data;
+export async function suggestKeywords(q: string): Promise<any> {
+  try {
+    const apiKey = process.env.TM_API_KEY;
+    const url = "https://app.ticketmaster.com/discovery/v2/suggest";
+    const res = await axios.get(url, {
+      params: { apikey: apiKey, keyword: q },
+    });
+
+    // Return the raw TM suggest response so the frontend can read _embedded.attractions/venues
+    return res.data;
+  } catch (err: any) {
+    if (axios.isAxiosError(err) && err.response?.status === 429) {
+      console.warn("Ticketmaster rate limit (429) on suggest; returning empty embedded lists");
+      return { _embedded: { attractions: [], venues: [] } };
+    }
+    console.error("Error in suggestKeywords:", err?.message ?? err);
+    // Return a safe empty shape so frontend doesn't error
+    return { _embedded: { attractions: [], venues: [] } };
+  }
 }
 
 
