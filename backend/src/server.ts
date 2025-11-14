@@ -37,8 +37,10 @@ async function start() {
   const publicPath = path.join(__dirname, "..", "public");
   if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
-    // Serve index.html for client-side routes
-    app.get("*", (_req: Request, res: Response) => {
+    // Serve index.html for client-side routes. Use a parameterized path
+    // `/*` to avoid a PathError from the underlying `path-to-regexp` parser
+    // in some dependency versions.
+    app.get("/*", (_req: Request, res: Response) => {
       res.sendFile(path.join(publicPath, "index.html"));
     });
   }
