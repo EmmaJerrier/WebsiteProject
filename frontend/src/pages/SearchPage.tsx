@@ -53,6 +53,7 @@ async function getLatLngFromAddress(
 type FormErrors = {
   keyword?: string;
   location?: string;
+  distance?: string;
 };
 
 export default function SearchPage() {
@@ -151,6 +152,12 @@ export default function SearchPage() {
 
     if (!autoDetect && !location.trim()) {
       newErrors.location = "Please enter a location or turn on auto-detect";
+    }
+
+    // Validate distance range
+    const distNum = Number(distance);
+    if (Number.isNaN(distNum) || distNum < 1 || distNum > 1000) {
+      newErrors.distance = "Distance must be between 1 and 1000 miles";
     }
 
     setErrors(newErrors);
@@ -334,17 +341,20 @@ export default function SearchPage() {
               />
               <span className="text-sm text-gray-600">miles</span>
             </div>
+            {errors.distance && (
+              <p className="mt-1 text-xs text-red-600">{errors.distance}</p>
+            )}
           </div>
 
     <div className="w-full self-end">
     <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex items-center gap-2 px-6 py-2 rounded bg-black text-white font-semibold hover:bg-gray-800 disabled:opacity-60 border border-black"
-        >
-            Search Events
-        </button>
-        </div>
+      type="submit"
+      disabled={loading}
+      className="w-full md:inline-flex md:w-auto items-center justify-center gap-2 px-6 py-2 rounded bg-black text-white font-semibold hover:bg-gray-800 disabled:opacity-60 border border-black"
+    >
+      Search Events
+    </button>
+    </div>
         </div>
 
       </form>

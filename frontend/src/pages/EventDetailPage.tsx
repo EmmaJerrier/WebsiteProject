@@ -290,12 +290,25 @@ export default function EventDetailPage() {
                 <div>
                   <div className="text-sm font-semibold text-gray-900">Ticket Status</div>
                   <div className="mt-1">
-                    <Badge
-                      className="rounded-full"
-                      variant={status.toLowerCase() === "onsale" || status.toLowerCase() === "on sale" ? "secondary" : "outline"}
-                    >
-                      {status.replace(/([A-Z])/g, " $1").trim()}
-                    </Badge>
+                    {/* Color the status: onsale=green, off sale=red, canceled=black, else=orange */}
+                    {(() => {
+                      const s = (status || "").toLowerCase();
+                      let cls = "rounded-full border px-2 py-0.5 text-sm font-medium ";
+                      if (s.includes("onsale") || s.includes("on sale")) {
+                        cls += "bg-green-100 text-green-800 border-green-200";
+                      } else if (s.includes("off") && s.includes("sale") || s.includes("offsale") || s === "offsale") {
+                        cls += "bg-red-100 text-red-800 border-red-200";
+                      } else if (s.includes("cancel")) {
+                        cls += "bg-black text-white border-black";
+                      } else {
+                        cls += "bg-orange-100 text-orange-800 border-orange-200";
+                      }
+                      return (
+                        <Badge className={cls}>
+                          {status.replace(/([A-Z])/g, " $1").trim()}
+                        </Badge>
+                      );
+                    })()}
                   </div>
                 </div>
               )}
