@@ -1,0 +1,13 @@
+runtime: nodejs18
+env: standard
+instance_class: F2
+
+# In production we recommend loading secrets from Secret Manager rather than
+# embedding them as plaintext in this file. This `app.yaml` keeps only
+# non-sensitive configuration. Use `app.yaml.sample` for an example with
+# placeholders (do NOT commit real secrets).
+env_variables:
+  NODE_ENV: "production"
+
+# Ensure App Engine installs dependencies and runs `npm start` from package.json.
+# Deploy this file by running `gcloud app deploy` from the backend/ directory.

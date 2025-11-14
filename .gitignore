@@ -1,0 +1,17 @@
+# Node artifacts
+node_modules/
+
+# Backend env
+backend/.env
+
+# Backend build output
+backend/dist/
+
+# Frontend build
+frontend/dist/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*

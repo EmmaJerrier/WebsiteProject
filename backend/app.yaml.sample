@@ -1,0 +1,13 @@
+runtime: nodejs18
+env: standard
+instance_class: F2
+
+# Example only — DO NOT commit real secrets. Use Secret Manager in production.
+env_variables:
+  NODE_ENV: "production"
+  MONGODB_URI: "your-mongodb-connection-string"
+  TM_API_KEY: "your-ticketmaster-key"
+  SPOTIFY_CLIENT_ID: "your-spotify-client-id"
+  SPOTIFY_CLIENT_SECRET: "your-spotify-client-secret"
+
+# Deploy with `gcloud app deploy app.yaml` from the backend/ directory.
