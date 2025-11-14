@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "ts-node-dev --respawn src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "predeploy": "cd ../frontend && npm ci && npm run build && rm -rf ../backend/public && mkdir -p ../backend/public && cp -R dist/* ../backend/public",
+    "deploy": "npm run build && gcloud app deploy app.yaml --quiet"
   },
   "keywords": [],
   "author": "",

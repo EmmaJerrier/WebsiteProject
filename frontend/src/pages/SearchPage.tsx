@@ -209,7 +209,7 @@ export default function SearchPage() {
       let errorMsg = "Failed to fetch events";
       
       if (err instanceof TypeError && err.message.includes("fetch")) {
-        errorMsg = "Network error: Cannot connect to backend. Is the backend running on http://localhost:8080?";
+        errorMsg = "Network error: Cannot connect to backend.";
       } else if (err instanceof Error) {
         errorMsg = err.message;
       } else if (typeof err === "object" && err !== null && "response" in err) {
