@@ -221,7 +221,7 @@ export default function SearchPage() {
       {/* Search form */}
       <form onSubmit={handleSearch} className="space-y-5 w-full">
         {/* SINGLE ROW LAYOUT */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-start w-full">
+  <div className="grid grid-cols-1 md:grid-cols-5 gap-6 items-start md:items-end w-full">
           {/* Keywords */}
           <div className="w-full">
             <label
@@ -336,8 +336,8 @@ export default function SearchPage() {
             </div>
           </div>
 
-        <div className="w-full">
-        <button
+    <div className="w-full self-end">
+    <button
             type="submit"
             disabled={loading}
             className="inline-flex items-center gap-2 px-6 py-2 rounded bg-black text-white font-semibold hover:bg-gray-800 disabled:opacity-60 border border-black"
