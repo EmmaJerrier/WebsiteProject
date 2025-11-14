@@ -242,7 +242,7 @@ export default function EventDetailPage() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="info">Info</TabsTrigger>
           <TabsTrigger value="artists" disabled={!hasMusicArtists}>
-            Artists/Teams
+            Artists
           </TabsTrigger>
           <TabsTrigger value="venue">Venue</TabsTrigger>
         </TabsList>
@@ -264,7 +264,7 @@ export default function EventDetailPage() {
               {/* Artist/Team (only if present) */}
               {artistsLine && (
                 <div>
-                  <div className="text-sm font-semibold text-gray-900">Artist/Team</div>
+                  <div className="text-sm font-semibold text-gray-900">Artist</div>
                   <div className="text-gray-700">{artistsLine}</div>
                 </div>
               )}
@@ -377,7 +377,7 @@ export default function EventDetailPage() {
           </div>
         </TabsContent>
 
-        {/* ---------- ARTISTS/TEAMS TAB (placeholder; you can fill with cards later) ---------- */}
+        {/* ---------- ARTISTS TAB ---------- */}
         <TabsContent value="artists" className="mt-4">
         <ArtistPane preferredName={preferred} fallbackNames={fallbacks} />
         </TabsContent>

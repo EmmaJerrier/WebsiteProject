@@ -110,36 +110,41 @@ export default function ArtistPane({ preferredName, fallbackNames = [] }: Props)
           <div className="text-sm text-gray-600">No albums found.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {albums.map((al) => {
-              const img = al.images?.[0]?.url;
-              return (
-                <div key={al.id} className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                  <div className="h-56 w-full bg-gray-100">
-                    {img ? (
-                      <img src={img} alt={al.name} className="h-full w-full object-cover" />
-                    ) : null}
-                  </div>
-                  <div className="p-3">
-                    <div className="text-sm font-semibold line-clamp-2">{al.name}</div>
-                    <div className="mt-1 text-xs text-gray-600">
-                      {al.release_date} • {al.total_tracks} tracks
-                    </div>
-                    {al.external_urls?.spotify && (
-                      <div className="mt-2">
-                        <a
-                          href={al.external_urls.spotify}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-sm text-blue-600 underline"
-                        >
-                          View on Spotify
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+{albums.map((al) => {
+  const img = al.images?.[0]?.url;
+  const href = al.external_urls?.spotify;
+
+  const Card = (
+    <div className="rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-md transition cursor-pointer">
+      <div className="h-56 w-full bg-gray-100">
+        {img ? (
+          <img src={img} alt={al.name} className="h-full w-full object-cover" />
+        ) : null}
+      </div>
+      <div className="p-3">
+        <div className="text-sm font-semibold line-clamp-2">{al.name}</div>
+        <div className="mt-1 text-xs text-gray-600">
+          {al.release_date} • {al.total_tracks} tracks
+        </div>
+      </div>
+    </div>
+  );
+
+  return href ? (
+    <a
+      key={al.id}
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className="block"
+    >
+      {Card}
+    </a>
+  ) : (
+    <div key={al.id}>{Card}</div>
+  );
+})}
+
           </div>
         )}
       </div>
