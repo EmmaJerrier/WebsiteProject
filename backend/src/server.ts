@@ -37,12 +37,6 @@ async function start() {
   const publicPath = path.join(__dirname, "..", "public");
   if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
-    // Serve index.html for client-side routes. Use a parameterized path
-    // `/*` to avoid a PathError from the underlying `path-to-regexp` parser
-    // in some dependency versions.
-    app.get("/*", (_req: Request, res: Response) => {
-      res.sendFile(path.join(publicPath, "index.html"));
-    });
   }
 
   app.get("/api/health", (_req: Request, res: Response) => {
@@ -52,6 +46,21 @@ async function start() {
   app.use("/api/events", eventsRouter);
   app.use("/api/favorites", favoritesRouter);
   app.use("/api/spotify", spotifyRouter);
+
+  // SPA fallback: serve index.html for all non-API GET routes. Place this
+  // after the API routes so it doesn't intercept API requests (which are
+  // mounted under /api/*).
+  if (fs.existsSync(publicPath)) {
+    // Safe SPA fallback: for any non-API GET request, serve index.html.
+    // We use a middleware instead of an express route with a wildcard
+    // pattern to avoid path-to-regexp parsing issues across express/path-to-regexp versions.
+    app.use((req: Request, res: Response, next) => {
+      if (req.method !== "GET") return next();
+      // skip API routes
+      if (req.path.startsWith("/api/")) return next();
+      res.sendFile(path.join(publicPath, "index.html"));
+    });
+  }
 
   app.listen(PORT, () => {
     console.log(`Backend listening on port ${PORT}`);

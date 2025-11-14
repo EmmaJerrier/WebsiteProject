@@ -54,12 +54,4 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.get("/suggest", async (req, res) => {
-  const { keyword } = req.query;
-  if (!keyword || !String(keyword).trim()) return res.json({ _embedded: { attractions: [] }});
-  const data = await suggestKeywords(String(keyword));
-  res.json(data);
-});
-
-
 export default router;
