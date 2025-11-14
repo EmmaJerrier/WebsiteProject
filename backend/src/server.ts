@@ -21,7 +21,13 @@ async function start() {
   await loadSecrets(projectId);
 
   // Connect to MongoDB (requires MONGODB_URI to be set either via .env for local dev or Secrets in prod)
-  await connectToMongo();
+  // `connectToMongo` now returns a boolean and does not exit the process on
+  // failure. We still attempt to connect, but continue starting the HTTP
+  // server so the SPA can be served even if the DB is unreachable.
+  const dbConnected = await connectToMongo();
+  if (!dbConnected) {
+    console.warn("⚠️  Backend started without DB connection — DB routes will return errors until connection is restored.");
+  }
   app.use(cors());
   app.use(express.json());
 
