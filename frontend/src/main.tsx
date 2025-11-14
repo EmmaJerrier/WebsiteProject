@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";
 import { FavoritesProvider } from "./hooks/useFavorites";
+import { SearchProvider } from "./context/SearchContext";
 import { Toaster } from "sonner";
 
 function ResponsiveToaster() {
@@ -23,9 +24,11 @@ function ResponsiveToaster() {
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <FavoritesProvider>
-      <App />
-      <ResponsiveToaster />
-    </FavoritesProvider>
+    <SearchProvider>
+      <FavoritesProvider>
+        <App />
+        <ResponsiveToaster />
+      </FavoritesProvider>
+    </SearchProvider>
   </React.StrictMode>
 );

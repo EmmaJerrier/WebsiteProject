@@ -4,6 +4,8 @@ import KeywordAutocomplete from "../components/KeywordAutocomplete";
 import EventCard from "../components/EventCard";
 import type { EventSummary } from "../components/EventCard";
 import useFavorites from "../hooks/useFavorites";
+import { useSearch } from "../context/SearchContext";
+import { useLocation } from "react-router-dom";
 
 function getSegmentId(category: string): string | undefined {
   switch (category) {
@@ -55,6 +57,7 @@ type FormErrors = {
 
 export default function SearchPage() {
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { consumeSearchState, saveSearchState } = useSearch();
 
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("All");
@@ -66,12 +69,76 @@ export default function SearchPage() {
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
+  const routerLocation = useLocation();
+
+  // Restore search state on mount if available
+  useEffect(() => {
+    // priority: location.state (history entry) -> context consume -> sessionStorage
+  let savedState: any = (routerLocation.state as any)?.searchState ?? null;
+
+  if (!savedState) savedState = consumeSearchState();
+
+    // If context didn't have it yet (race), try sessionStorage directly
+    if (!savedState) {
+      try {
+        const raw = sessionStorage.getItem("searchState");
+        if (raw) {
+          savedState = JSON.parse(raw) as any;
+          // remove after reading to avoid reuse
+          sessionStorage.removeItem("searchState");
+          console.debug("SearchPage: restored state from sessionStorage", savedState);
+        }
+      } catch (e) {
+        console.warn("SearchPage: failed to read sessionStorage", e);
+      }
+    }
+
+    if (savedState) {
+      setKeyword(savedState.keyword);
+      setCategory(savedState.category);
+      setDistance(savedState.distance);
+      setLocation(savedState.location);
+      setAutoDetect(savedState.autoDetect);
+      setEvents(savedState.events);
+
+      // Restore scroll position after a short delay to ensure DOM is updated
+      setTimeout(() => {
+        window.scrollTo(0, savedState.scrollPosition);
+      }, 50);
+    }
+  }, [consumeSearchState, routerLocation]);
+
   useEffect(() => {
     if (autoDetect) {
       setLocation("");
       setErrors((prev) => ({ ...prev, location: undefined }));
     }
   }, [autoDetect]);
+
+  const saveState = () => {
+    // Save current search state so it can be restored after navigating back
+    const state = {
+      keyword,
+      category,
+      distance,
+      location,
+      autoDetect,
+      events,
+      scrollPosition: window.scrollY,
+    };
+    saveSearchState(state);
+    // Also write the search state into the current history entry so that
+    // navigating back (history back) will have the state available on the
+    // Search entry (location.state)
+    try {
+      const current = window.history.state || {};
+      const next = { ...current, searchState: state };
+      window.history.replaceState(next, document.title);
+    } catch (e) {
+      console.warn("SearchPage: failed to replace history state", e);
+    }
+    return state;
+  };
 
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
@@ -300,6 +367,7 @@ export default function SearchPage() {
                 event={ev}
                 isFavorite={isFavorite(ev.id)}
                 onToggleFavorite={toggleFavorite}
+                onBeforeNavigate={saveState}
               />
             ))}
           </div>

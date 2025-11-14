@@ -16,6 +16,8 @@ interface Props {
   event: EventSummary;
   isFavorite: boolean;
   onToggleFavorite: (event: EventSummary) => void;
+  // Optional callback executed before navigation; may return the saved search state
+  onBeforeNavigate?: () => unknown;
 }
 
 function formatBadgeDate(date: string, time: string) {
@@ -37,7 +39,7 @@ function formatBadgeDate(date: string, time: string) {
   }
 }
 
-export default function EventCard({ event, isFavorite, onToggleFavorite }: Props) {
+export default function EventCard({ event, isFavorite, onToggleFavorite, onBeforeNavigate }: Props) {
   const navigate = useNavigate();
 
   const badgeDate = useMemo(
@@ -45,7 +47,12 @@ export default function EventCard({ event, isFavorite, onToggleFavorite }: Props
     [event.date, event.time]
   );
 
-  const goDetail = () => navigate(`/event/${event.id}`);
+  const goDetail = () => {
+    const saved = onBeforeNavigate?.();
+    const navState: any = { fromSearch: true };
+    if (saved !== undefined && saved !== null) navState.searchState = saved;
+    navigate(`/event/${event.id}`, { state: navState });
+  };
 
   const onFavClick = (e: React.MouseEvent) => {
     e.stopPropagation();

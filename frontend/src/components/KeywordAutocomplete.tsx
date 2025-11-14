@@ -46,10 +46,10 @@ export default function KeywordAutocomplete({
 
         const attNames: SuggestItem[] = attractions
           .map((a: any) => ({ id: a.id as string, name: a.name as string }))
-          .filter((x) => !!x.name);
+          .filter((x: SuggestItem) => !!x.name);
         const venNames: SuggestItem[] = venues
           .map((v: any) => ({ id: v.id as string, name: v.name as string }))
-          .filter((x) => !!x.name);
+          .filter((x: SuggestItem) => !!x.name);
 
         const merged = dedupeByName([...attNames, ...venNames]).slice(0, 10);
         if (active) setItems(merged);
