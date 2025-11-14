@@ -9,5 +9,23 @@ instance_class: F2
 env_variables:
   NODE_ENV: "production"
 
+# Optional: If you create a Serverless VPC Access connector to provide
+# egress into a VPC (useful to reach MongoDB Atlas securely via a
+# NAT/static IP or private peering), you can enable it like this:
+#
+# vpc_access_connector:
+#   name: projects/YOUR_PROJECT_ID/locations/YOUR_REGION/connectors/YOUR_CONNECTOR_NAME
+#
+# Example (replace placeholders):
+# vpc_access_connector:
+#   name: projects/my-project/locations/us-central1/connectors/ae-connector
+#
+# Notes:
+# - You must create the connector with `gcloud compute networks vpc-access connectors create`.
+# - It's recommended to combine a connector with Cloud NAT to provide a stable egress IP
+#   that you can whitelist in Atlas. Alternatively use Atlas private peering.
+# - Do NOT store secrets in this file. Use Secret Manager (the app loads secrets when
+#   running in GCP via `backend/src/secrets.ts`).
+
 # Ensure App Engine installs dependencies and runs `npm start` from package.json.
 # Deploy this file by running `gcloud app deploy` from the backend/ directory.
