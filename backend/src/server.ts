@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
-dotenv.config();        // ← this must come first
+dotenv.config(); // must come first
 
-import express, { Request, Response } from "express";
+import express, { Request, Response, NextFunction } from "express";
 import path from "path";
 import fs from "fs";
 import cors from "cors";
@@ -14,26 +14,45 @@ import { loadSecrets } from "./secrets";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
+// ----------------------
+// 🔥 FIX CORS / PREFLIGHT
+// ----------------------
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization, X-Requested-With"
+  );
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
+
+
+// You can still use cors() but it's no longer critical
+app.use(cors());
+// Parse JSON bodies
+app.use(express.json());
 
 async function start() {
-  // In production we'll prefer loading from Secret Manager; load if project id present
-  const projectId = process.env.GCP_PROJECT || process.env.GOOGLE_CLOUD_PROJECT || process.env.GCLOUD_PROJECT;
+  const projectId =
+    process.env.GCP_PROJECT ||
+    process.env.GOOGLE_CLOUD_PROJECT ||
+    process.env.GCLOUD_PROJECT;
+
   await loadSecrets(projectId);
 
-  // Connect to MongoDB (requires MONGODB_URI to be set either via .env for local dev or Secrets in prod)
-  // `connectToMongo` now returns a boolean and does not exit the process on
-  // failure. We still attempt to connect, but continue starting the HTTP
-  // server so the SPA can be served even if the DB is unreachable.
   const dbConnected = await connectToMongo();
   if (!dbConnected) {
-    console.warn("⚠️  Backend started without DB connection — DB routes will return errors until connection is restored.");
+    console.warn(
+      "⚠️  Backend started without DB connection — DB routes will return errors until connection is restored."
+    );
   }
-  app.use(cors());
-  app.use(express.json());
 
-  // If a `public` directory exists (populated with the frontend `dist` build),
-  // serve it as static files. This lets App Engine serve the SPA from the same
-  // service as the API.
+  // Serve frontend (if built into /public)
   const publicPath = path.join(__dirname, "..", "public");
   if (fs.existsSync(publicPath)) {
     app.use(express.static(publicPath));
@@ -47,16 +66,10 @@ async function start() {
   app.use("/api/favorites", favoritesRouter);
   app.use("/api/spotify", spotifyRouter);
 
-  // SPA fallback: serve index.html for all non-API GET routes. Place this
-  // after the API routes so it doesn't intercept API requests (which are
-  // mounted under /api/*).
+  // SPA fallback for non-API routes
   if (fs.existsSync(publicPath)) {
-    // Safe SPA fallback: for any non-API GET request, serve index.html.
-    // We use a middleware instead of an express route with a wildcard
-    // pattern to avoid path-to-regexp parsing issues across express/path-to-regexp versions.
-    app.use((req: Request, res: Response, next) => {
+    app.use((req: Request, res: Response, next: NextFunction) => {
       if (req.method !== "GET") return next();
-      // skip API routes
       if (req.path.startsWith("/api/")) return next();
       res.sendFile(path.join(publicPath, "index.html"));
     });
